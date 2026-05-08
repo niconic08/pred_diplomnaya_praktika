@@ -1,0 +1,388 @@
+\section{Техническое задание}
+\subsection{Основание для разработки}
+
+Основанием для разработки является задание на выпускную квалификационную работу бакалавра "<Разработка виртуальной файловой системы и реализация файловых систем FAT32 и CDFS">.
+
+\subsection{Цель и назначение разработки}
+
+Основной задачей выпускной квалификационной работы является разработка и тестирование виртуальной файловой системы, а также файловых систем FAT32 и CDFS. Для интерактивного взаимодействия с файловой системой необходимо разработать и протестировать командный интерпретатор.
+
+Целью разработки является создание виртуальной файловой системы, а также изучение структуры FAT32 и CDFS.
+
+Задачами данной разработки являются:
+\begin{itemize}
+\item изучение структуры FAT32 и CDFS;
+\item проектирование виртуальной файловой системы;
+\item проектирование интерфейса виртуальной файловой системы;
+\item реализация виртуальной файловой системы и её интерфейса;
+\item реализация файловых систем FAT32 и CDFS;
+\item реализация командного интерпретатора.
+\end{itemize}
+
+\subsection{Требования к функциональности}
+
+Интерфейс виртуальной файловой системы должен включать следующие функции:
+
+\begin{itemize}
+\item загрузка файловой системы;
+\item получение пути текущего каталога;
+\item просмотр содержимого каталога;
+\item создание каталога;
+\item удаление каталога;
+\item перемещение в каталог;
+\item создание файла;
+\item удаление файла;
+\item открытие файла;
+\item закрытие файла;
+\item чтение файла;
+\item запись в файл;
+\item получение позиции в файле;
+\item перемещение позиции в файле;
+\item проверка на каталог;
+\item переименовывание файла или каталога;
+\item получение объёма свободного места;
+\item изменение атрибутов файла или каталога;
+\item получение метаданных файла или каталога.
+\end{itemize}
+
+\subsection{Интерфейс виртуальной файловой системы}
+
+\subsubsection{Загрузка файловой системы}
+
+\texttt{load-partition} -- загрузить файловую систему из определённого раздела диска. Аргументы: \texttt{disk-num}(номер диска, с которого загрузить файловую систему), \texttt{part-num}(номер раздела, с которого загрузить файловую систему). Возвращает \texttt{nil}. Возможные ошибки: неправильный номер диска, не активный раздел, неизвестный тип файловой системы. Возможные исключения: \texttt{argument-error}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; загрузка файловой системы с первого раздела первого диска
+		(load-partition 0 0)
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Получение пути текущего каталога}
+
+\texttt{cur-dir} -- получить путь текущего каталога. Аргументов нет. Возвращает полный путь текущего каталога в виде строки. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; полный путь текущего каталога
+		(cur-dir) -> "/dir1/dir2/curentdirectory"
+	\end{lstlisting}
+\end{figure}
+
+Путь можно указывать следующими способами:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		Корневой каталог:
+		"/"
+		
+		Каталог относительно корневого каталога:
+		"/directory"
+		
+		Текущий каталог:
+		""
+		
+		Каталог относительно текущего каталога:
+		"directory"
+		
+		Каждый ".." в пути означает перемещение каталога на уровень выше:
+		
+		Каталог на уровень выше от текущего:
+		".."
+		
+		Каталог на два уровня выше от текущего:
+		"../.."
+		
+		Каталог в каталоге на уровень выше от текущего:
+		"../dir"
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Просмотр содержимого каталога}
+
+\texttt{list-dir} -- просмотреть содержимое каталога. Аргументы: \texttt{path}(путь к каталогу, содержимое которого необходимо вернуть). Возвращает список содержимого каталога, каждый элемент списка -- пара, состоящая из символа типа(файл, каталог) и строки названия. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-directory}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; просмотр содержимого корневого каталога
+		(list-dir "/") -> (
+		(file . "file1.txt")
+		(dir . "directory")
+		(file . "file2.txt")
+		)
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Создание каталога}
+
+\texttt{create-dir} -- создать каталог. Аргументы: \texttt{path}(путь к каталогу, который необходимо создать). Возвращает \texttt{nil}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-directory}, \texttt{not-enough-space}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; создать каталог в текущем каталоге
+		(create-dir "directory")
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Удаление каталога}
+
+\texttt{remove-dir} -- удалить каталог, если он пуст. Аргументы: \texttt{path}(путь к каталогу, который нужно удалить). Возвращет \texttt{nil}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-directory}, \texttt{not-empty-dir}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; удалить каталог в корневом каталоге
+		(remove-dir "/directory")
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Перемещение в каталог}
+
+\texttt{change-dir} -- переместиться в каталог. Аргументы: \texttt{path}(путь к каталогу, в который необходимо переместиться). Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-directory}. Возвращает \texttt{nil}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; переместиться в каталог относительно текущего каталога
+		(change-dir "directory") 
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Создание файла}
+
+\texttt{create-file} -- создать файл. Аргументы: \texttt{path}(путь к файлу, который необходимо создать). Возвращает \texttt{nil}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-directory}, \texttt{not-enough-space}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; создать файл в корневом каталоге
+		(create-file "/file.txt")
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Удаление файла}
+
+\texttt{remove-file} -- удалить файл. Аргументы: \texttt{path}(путь к файлу, который нужно удалить). Возвращет \texttt{nil}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-file}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; удалить файл в текущем каталоге
+		(remove-file "file.txt")
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Открытие файла}
+
+\texttt{open-file} -- открыть файл как поток для чтения и записи. Аргументы: \texttt{path}(путь к файлу, который нужно открыть). Возвращает объект файла. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}, \texttt{not-file}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; открыть файл в корневом каталоге
+		(open-file "/file.txt") -> <объект файла>
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Закрытие файла}
+
+\texttt{close-file} -- закрыть файл. Аргументы: \texttt{file-object}(объект файла, который необходимо закрыть). Возвращает \texttt{nil}. Возможные ошибки: аргумент не является объектом файла. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; открыть файл
+		(setq file (open-file "file.txt"))
+		
+		; закрыть файл
+		(close-file file)
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Чтение файла}
+
+\texttt{read-file} -- прочитать определённое количество байт из потока файла, и переместить позицию внутри потока на то же количество. Аргументы: \texttt{file-object}(объект файла, из которого читать байты), \texttt{size}(количество байт, которое необходимо прочитать). Возвращает массив прочитанных байт. Возможные ошибки: ошибка диска, аргумент не является объектом файла. Возможные исключения: \texttt{argument-error}, \texttt{end-of-file}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; открыть файл
+		(setq file (open-file "/file.txt"))
+		
+		; прочитать 10 байт из файла
+		(read-file file 10) -> <массив из 10 байт> например #(1 2 3 4 5 6 7 8 9 10) 
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Запись в файл}
+
+\texttt{write-file} -- записать массив байт в поток файла, и переместить позицию внутри потока на то же количество. Аргументы: \texttt{file-object}(объект файла, в который необходимо записать массив байт), \texttt{buffer}(массив байт, который необходимо записать). Возвращает количество байт, которые было записано. Возможные ошибки: ошибка диска, аргумент не является объектом файла. Возможные исключения: \texttt{argument-error}, \texttt{not-enough-space}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; открыть файл
+		(setq file (open-file "file.txt"))
+		
+		; записать 5 байт в файл
+		(write-file file #(1 2 3 4 5)) -> 5 
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Получение позиции в файле}
+
+\texttt{tell-file} -- получить позицию внутри потока файла. Аргументы: \texttt{file-object}(объект файла, позицию в котором необходимо вернуть). Возвращает значение позиции в потоке файла. Возможные ошибки: аргумент не является объектом файла. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; открыть файл
+		(setq file (open-file "/file.txt"))
+		
+		; получить значение позиции
+		(tell-file file) -> 0
+		
+		; прочитать 10 байт из файла
+		(read-file file 10)
+		
+		; получить значение позиции
+		(tell-file file) -> 10
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Перемещение позиции в файле}
+
+\texttt{seek-file} -- переместить позицию внутри потока файла. Аргументы: \texttt{file-object}(объект файла, позицию в котором необходимо переместить), \texttt{offset}(насколько сместить позицию), \texttt{origin}(откуда смещать позицию). Возвращает значение новой позиции в потоке. Возможные ошибки: аргумент не является объектом файла. Возможные исключения: \texttt{end-of-file}, \texttt{argument-error}. Аргумент \texttt{origin} может принимать следующие значения:
+\begin{itemize}
+	\item SET -- с начала файла;
+	\item END -- с конца файла;
+	\item CUR -- с текущей позиции.
+\end{itemize}
+Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; открыть файл
+		(setq file (open-file "file.txt"))
+		
+		; получить значение позиции
+		(tell-file file) -> 0
+		
+		; сместить позицию относительно начала файла на 20
+		(seek-file file 20 'SET)
+		
+		; получить значение позиции
+		(tell-file file) -> 20
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Проверка на каталог}
+
+\texttt{is-directory} -- проверить, является ли файл каталогом. Аргументы: \texttt{path}(путь к файлу, который надо проверить). Возвращает \texttt{t}, если файл является каталогом, и \texttt{nil}, если нет. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; проверка на каталог для каталога
+		(is-directory "/directory") -> t
+		(is-directory "/file.txt") -> nil
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Переименовывание файла или каталога}
+
+\texttt{rename} -- переименовать файл или каталог. Аргументы: \texttt{path}(путь к файлу или каталогу, который необходимо переименовать), \texttt{name}(новое имя файла или каталога). Возвращает \texttt{nil}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; создать файл
+		(create-file "" "file.txt")
+		
+		; переименовать файл
+		(rename "file.txt" "exactfile.txt")
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Получение объёма свободного места}
+
+\texttt{free-space} -- получить объём свободного места в текущем разделе диска. Аргументов нет. Возвращает размер в байтах. Возможные ошибки: ошибка диска. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; загрузить файловую систему
+		(load-partition 0 0)
+		
+		; получить свободное место
+		(free-space) -> размер свободного места
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Изменение атрибутов файла или каталога}
+
+\texttt{set-attr} -- изменить атрибуты файла или каталога. Аргументы: \texttt{path}(путь к файлу или каталогу, чьи атрибуты надо поменять), \texttt{new-attribues}(новые атрибуты файла или каталога). Возвращает \texttt{nil}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}. Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]		
+		; изменить атрибуты файла
+		(set-attr "file.txt" '(READ-ONLY))
+	\end{lstlisting}
+\end{figure}
+
+\subsubsection{Получение метаданных файла или каталога}
+
+\texttt{fstat} -- получить метаданные файла или каталога. Аргументы: \texttt{path}(путь к файлу или каталогу, чьи метаданные надо получить). Возвращает структуру \texttt{stat}. Возможные ошибки: ошибка диска. Возможные исключения: \texttt{path-not-found}. Структура \texttt{stat} состоит из:
+\begin{enumerate}
+	\item \texttt{name} -- название файла.
+	\item \texttt{size} -- размер файла в байтах. Для каталогов равно 0.
+	\item \texttt{create-date} -- дата создания файла, если нет в конкретной файловой системе, то равно \texttt{nil}.
+	\item \texttt{create-time} -- время создания файла, если нет в конкретной файловой системе, то равно \texttt{nil}.
+	\item \texttt{modify-date} -- дата последнего изменения файла, если нет в конкретной файловой системе, то равно \texttt{nil}.
+	\item \texttt{modify-time} -- время последнего изменения файла, если нет в конкретной файловой системе, то равно \texttt{nil}.
+	\item \texttt{access-date} -- дата последнего доступа файла, если нет в конкретной файловой системе, то равно \texttt{nil}.
+	\item \texttt{access-time} -- время последнего изменения файла, если нет в конкретной файловой системе, то равно \texttt{nil}.
+	\item \texttt{isdir} -- флаг, показывающий, является ли файл каталогом.
+	\item Другие атрибуты, которые зависят от конкретной файловой системы.
+\end{enumerate}
+Пример:
+\begin{figure}[H]
+	\begin{lstlisting}[language=Lisp]
+		; получить структуру stat из файла(в файловой системе FAT32)
+		(fstat "/file.txt") -> (
+		(name . "file.txt")
+		(size . 123321)
+		(create-date . (13 9 2025)) ; (d m y)
+		(create-time . (9 40 0)) ; (h m s)
+		(modify-date . (13 09 2025))
+		(modify-time . (9 40 0))
+		(access-date . (13 09 2025))
+		(access-time . nil)
+		(isdir . nil)
+		(create-time-ms . 440) ; миллисекунды времени создания файла
+		(attribute . (Hidden Read-Only)) ; атрибуты файла
+		)
+		
+		; получить структуру stat из файла(в файловой системе CDFS)
+		(fstat "/directory") -> (
+		(name . "directory")
+		(size . 0)
+		(create-date . (13 9 2025)) ; (d m y)
+		(create-time . (9 40 0)) ; (h m s)
+		(modify-date . nil)
+		(modify-time . nil)
+		(access-date . nil)
+		(access-time . nil)
+		(isdir . t)
+		(flags . (Hidden)) ; атрибуты файла
+		)
+	\end{lstlisting}
+\end{figure}
+
+\subsection{Исключения}
+
+Интерфейс виртуальной файловой системы должен включать следующие исключения:
+
+\begin{enumerate}
+\item \texttt{path-not-found} -- путь не найден.
+\item \texttt{not-directory} -- по пути найден файл, а не каталог.
+\item \texttt{not-file} -- по пути найден каталог, а не файл.
+\item \texttt{read-only} -- файл только для чтения.
+\item \texttt{not-enough-space} -- не хватает места на диске.
+\item \texttt{end-of-file} -- чтение за пределами файла.
+\item \texttt{not-empty-dir} -- попытка удаления непустого каталога.
+\item \texttt{argument-error} -- некорректные аргументы.
+\item \texttt{file-exists} -- файл или каталог уже существует.
+\end{enumerate}
+
+\subsection{Командный интерпретатор}
+
+Командный интерпретатор должен включать следующие команды:
+
+\begin{enumerate}
+\item \texttt{clear} -- очистить экран. Аргументов нет.
+\item \texttt{cwd} -- получить путь текущего каталога. Аргументов нет.
+\item \texttt{ls} -- получить содержимое текущего каталога. Аргументов нет.
+\item \texttt{cd} -- переместиться в каталог. Аргументы: \texttt{path}(путь к каталогу).
+\item \texttt{cat} -- вывести содержимое файла на экран. Аргументы: \texttt{path}(путь к файлу).
+\item \texttt{append} -- добавить строку к концу файла. Аргументы: \texttt{path}(путь к файлу), \texttt{str}(строка, которую необходимо добавить в конец файла).
+\item \texttt{copy} -- скопировать файл. Аргументы: \texttt{file1-path}(путь к файлу, который необходимо скопировать), \texttt{file2-path}(путь, по которому необходимо создать новый файл(удалить, если уже существует) и скопировать содержимое файла).
+\item \texttt{mkdir} -- создать новый каталог. Аргументы: \texttt{path}(путь к каталогу, который необходимо создать). 
+\item \texttt{touch} -- создать новый файл. Аргументы: \texttt{path}(путь к файлу, который необходимо создать).
+\item \texttt{rmdir} -- удалить каталог, если он пуст. Аргументы: \texttt{path}(путь к каталогу, который необходимо удалить, если он пуст).
+\item \texttt{rm} -- удалить файл. Аргументы: \texttt{path}(путь к файлу, который необходимо удалить).
+\item \texttt{chattr} -- изменить атрибуты файла. Аргументы: \texttt{path}(путь к файлу), \texttt{new-attributes}(новые атрибуты файла).
+\end{enumerate}
+
+\subsection{Требования к оформлению документации}
+
+Разработка программной документации и программного изделия должна производиться согласно ГОСТ 19.102-77 и ГОСТ 34.601-90. Единая система программной документации.
